@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit "{{ paper['title'] }}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title"
+      value="{{ request.form['title'] or paper['title'] }}" required>
+    <label for="abstract">Body</label>
+    <textarea name="abstract" id="abstract">{{ request.form['abstract'] or paper['abstract'] }}</textarea>
+    <label for="link">Link</label>
+    <input name="link" id="link"
+      value="{{ request.form['link'] or paper['link'] }}" required>
+    <label for="category">Class</label>
+    <select name="category" id="category"  required>
+      {% for category in categories %}
+        {% if paper['class_id'] == category['id'] %}
+          <option value="{{ category['id'] }}" selected>{{ category['class_name'] }}</option>
+        {% else %}
+          <option value="{{ category['id'] }}">{{ category['class_name'] }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <input type="submit" value="Save">
+  </form>
+  <hr>
+  <form action="{{ url_for('category.index') }}" method="get">
+    <input type="submit" value="Manage Classes" >
+  </form>
+  <hr>
+  <form action="{{ url_for('paper.delete', id=paper['id']) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock %}

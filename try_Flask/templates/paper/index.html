@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Papers{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('paper.create') }}">New</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+    <form action="{{ url_for('paper.index') }}" method="post">
+      <label for="search_title">Search title or abstract</label>
+      <input name="search_title" id="search_title" value="{{ request.form['search_title'] }}">
+      <label for="category">Choose category</label>
+      <select name="category" id="category" required>
+        <option value=NULL>All categories</option>
+        {% for category in categories %}
+          {% if request.form['category'] == (category['id']|string) %}
+            <option value="{{ category['id'] }}" selected>{{ category['class_name'] }}</option>
+          {% else %}
+            <option value="{{ category['id'] }}">{{ category['class_name'] }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <input type="submit" value="Search" >
+    </form>
+  <hr>
+  {% for paper in papers %}
+    {% if (search_item.lower() in paper['title'].lower()) or (search_item.lower() in paper['abstract'].lower()) or (search_item == "") %}
+      <article class="post">
+        <header>
+          <div>
+            <h1>{{ paper['title'] }}</h1>
+            {% if paper['class']!='' %}
+              <div class="body">class tag: {{ paper['class_name'] }}</div>
+            {% endif %}
+            <div class="about">by {{ paper['username'] }} on {{ paper['created'].strftime('%Y-%m-%d') }}</div>
+          </div>
+          <a class="action" href="{{ url_for('paper.update', id=paper['id']) }}">Edit</a>
+        </header>
+        <p class="body">{{ paper['abstract'] }}</p>
+        <a href= "{{ paper['link'] }}">pdf</a>
+      </article>
+      {% if not loop.last %}
+        <hr>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}New Paper{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="abstract">Abstract</label>
+    <textarea name="abstract" id="abstract">{{ request.form['abstract'] }}</textarea>
+    <label for="link">Link</label>
+    <input name="link" id="link" value="{{ request.form['link'] }}" required>
+    <label for="category">Class</label>
+    <select name="category" id="category" required>
+      {% for category in categories %}
+        <option value="{{ category['id'] }}">{{ category['class_name'] }}</option>
+      {% endfor %}
+    </select>
+    <input type="submit" value="Save">
+  </form>
+  <hr>
+  <form action="{{ url_for('category.index') }}" method="get">
+    <input type="submit" value="Manage Classes" >
+  </form>
+{% endblock %}
