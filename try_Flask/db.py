@@ -22,10 +22,20 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
+
 def init_db():
     db = get_db()
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+
+
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Clear the existing data and create new tables."""
+    init_db()
+    collect_data_command()
+    click.echo('Initialized the database.')
 
 
 @click.command('collect-data')
@@ -130,15 +140,6 @@ def collect_data_command():
                     (paper_name.group(1), '', "http://openaccess.thecvf.com/" + paper_link.group(1), user['id'], classes_list[randint(0, len(classes_list)-1)])
                 )
                 db.commit()
-
-
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    init_db()
-    collect_data_command()
-    click.echo('Initialized the database.')
 
 
 def init_app(app):

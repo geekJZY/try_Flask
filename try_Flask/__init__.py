@@ -42,7 +42,6 @@ def create_app(test_config=None):
     app.register_blueprint(paper.bp)
     app.add_url_rule('/', endpoint='index')
 
-
     return app
 
 
