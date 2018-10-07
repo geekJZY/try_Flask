@@ -29,17 +29,6 @@ def init_db():
         db.executescript(f.read().decode('utf8'))
 
 
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    init_db()
-    # collect_data_command()
-    click.echo('Initialized the database.')
-
-
-@click.command('collect-data')
-@with_appcontext
 def collect_data_command():
     """collect data."""
     db = get_db()
@@ -142,8 +131,16 @@ def collect_data_command():
                 db.commit()
 
 
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Clear the existing data and create new tables."""
+    init_db()
+    # collect_data_command()
+    click.echo('Initialized the database.')
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
-    app.cli.add_command(collect_data_command)
 
