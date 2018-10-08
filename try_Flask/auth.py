@@ -22,16 +22,15 @@ def register():
         elif not password:
             error = 'Password is required.'
         elif db.execute(
-            'SELECT id FROM user WHERE username = ?', (username,)
+            'SELECT id FROM "user" WHERE username = %s', (username,)
         ).fetchone() is not None:
             error = 'User {} is already registered.'.format(username)
 
         if error is None:
             db.execute(
-                'INSERT INTO user (username, password) VALUES (?, ?)',
+                'INSERT INTO "user" (username, password) VALUES (%s, %s)',
                 (username, generate_password_hash(password))
             )
-            db.commit()
             return redirect(url_for('auth.login'))
 
         flash(error)
@@ -46,7 +45,7 @@ def login():
         db = get_db()
         error = None
         user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
+            'SELECT * FROM "user" WHERE username = %s', (username,)
         ).fetchone()
 
         if user is None:
@@ -72,7 +71,7 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
+            'SELECT * FROM "user" WHERE id = %s', (user_id,)
         ).fetchone()
 
 
@@ -81,6 +80,7 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -88,5 +88,4 @@ def login_required(view):
             return redirect(url_for('auth.login'))
 
         return view(**kwargs)
-
     return wrapped_view

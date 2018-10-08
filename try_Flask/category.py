@@ -16,7 +16,7 @@ def index():
     classes = db.execute(
         'SELECT c.id, user_id, class_name'
         ' FROM class c'
-        ' WHERE user_id=?'
+        ' WHERE user_id=%s'
         ' ORDER BY c.id ASC',
         (g.user['id'],)
     ).fetchall()
@@ -24,10 +24,10 @@ def index():
         class_name = request.form['class_name']
         error = None
 
-        if not class_name or class_name=='':
+        if not class_name or class_name == '':
             error = 'Category name is required.'
         for category in classes:
-            if category['class_name']==class_name:
+            if category['class_name'] == class_name:
                 error = 'Category name exist'
 
         if error is not None:
@@ -35,10 +35,9 @@ def index():
         else:
             db.execute(
                 'INSERT INTO class (user_id, class_name)'
-                ' VALUES ( ?, ?)',
+                ' VALUES ( %s, %s)',
                 (g.user['id'], class_name)
             )
-            db.commit()
 
             return redirect(url_for('category.index'))
 
@@ -48,7 +47,7 @@ def get_class(id):
     category = get_db().execute(
         'SELECT id, user_id, class_name'
         ' FROM class p '
-        ' WHERE p.id = ? AND p.user_id = ?',
+        ' WHERE p.id = %s AND p.user_id = %s',
         (id, g.user['id'])
     ).fetchone()
 
@@ -65,9 +64,8 @@ def delete(id):
     db = get_db()
     db.execute(
         'DELETE FROM paper '
-        ' WHERE class_id=?',
+        ' WHERE class_id=%s',
         (id,)
     )
-    db.execute('DELETE FROM class WHERE id = ?', (id,))
-    db.commit()
+    db.execute('DELETE FROM class WHERE id = %s', (id,))
     return redirect(url_for('category.index'))

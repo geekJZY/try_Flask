@@ -3,93 +3,62 @@ import sqlite3
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+from sqlalchemy import create_engine
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
+        g.db = create_engine(current_app.config['DATABASE'])
 
     return g.db
 
 
-def close_db(e=None):
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
+# def close_db(e=None):
+#     db = g.pop('db', None)
+#     #
+#     # if db is not None:
+#     #     db.close()
 
 
 def init_db():
     db = get_db()
     with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+        db.execute(f.read().decode('utf8').replace('\n', ''))
 
 
 def collect_data_command():
     """collect data."""
     db = get_db()
     db.execute(
-        'INSERT INTO user (username, password)'
-        ' VALUES (?, ?)',
-        ('123', generate_password_hash('123'))
+        'INSERT INTO "user"(username, password) VALUES (%s, %s)',
+        '123', generate_password_hash('123')
     )
-    db.commit()
 
     user = db.execute(
-        'SELECT id FROM user'
+        'SELECT id FROM "user"'
     ).fetchone()
+    print(user)
 
     db.execute(
         'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'GAN')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'image style transfer')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'reinforcement learning')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'object detection')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'denoising')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'deblurring')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
-        (user['id'], 'super resolution')
-    )
-    db.execute(
-        'INSERT INTO class (user_id, class_name)'
-        ' VALUES (?, ?)',
+        ' VALUES (%s, %s)',
+        (user['id'], 'GAN'),
+        (user['id'], 'image style transfer'),
+        (user['id'], 'reinforcement learning'),
+        (user['id'], 'object detection'),
+        (user['id'], 'denoising'),
+        (user['id'], 'deblurring'),
+        (user['id'], 'super resolution'),
         (user['id'], 'deraining')
     )
 
-
     classes = db.execute(
-        'SELECT id FROM class WHERE user_id=?',
+        'SELECT id FROM class WHERE user_id= %s',
         (user['id'],)
-    )
+    ).fetchall()
+    print(classes)
     classes_list = []
     for category in classes:
         classes_list += [category['id']]
@@ -126,10 +95,10 @@ def collect_data_command():
                 flag = True
                 db.execute(
                     'INSERT INTO paper (title, abstract, link, user_id, class_id)'
-                    ' VALUES (?, ?, ?, ?, ?)',
-                    (paper_name.group(1), '', "http://openaccess.thecvf.com/" + paper_link.group(1), user['id'], classes_list[randint(0, len(classes_list)-1)])
+                    ' VALUES (%s, %s, %s, %s, %s)',
+                    (paper_name.group(1), '', "http://openaccess.thecvf.com/" + paper_link.group(1), user['id'],
+                     classes_list[randint(0, len(classes_list)-1)])
                 )
-                db.commit()
 
 
 @click.command('init-db')
@@ -142,6 +111,5 @@ def init_db_command():
 
 
 def init_app(app):
-    app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
 

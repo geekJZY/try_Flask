@@ -15,7 +15,7 @@ def index():
     classes = db.execute(
         'SELECT c.id, user_id, class_name'
         ' FROM class c'
-        ' WHERE user_id=?'
+        ' WHERE user_id=%s'
         ' ORDER BY c.id ASC',
         (g.user['id'],)
     ).fetchall()
@@ -26,7 +26,7 @@ def index():
             papers = db.execute(
                 'SELECT p.id, title, abstract, link, created, class_name'
                 ' FROM paper p JOIN class c ON p.class_id = c.id'
-                ' WHERE p.user_id=?'
+                ' WHERE p.user_id=%s'
                 ' ORDER BY created DESC',
                 (g.user['id'],)
             ).fetchall()
@@ -34,7 +34,7 @@ def index():
             papers = db.execute(
                 'SELECT p.id, title, abstract, link, created, class_name'
                 ' FROM paper p JOIN class c ON p.class_id = c.id'
-                ' WHERE p.user_id=? AND c.id=?'
+                ' WHERE p.user_id=%s AND c.id=%s'
                 ' ORDER BY created DESC',
                 (g.user['id'], request.form['category'])
             ).fetchall()
@@ -44,7 +44,7 @@ def index():
     papers = db.execute(
         'SELECT p.id, title, abstract, link, created, class_name'
         ' FROM paper p JOIN class c ON p.class_id = c.id'
-        ' WHERE p.user_id=?'
+        ' WHERE p.user_id=%s'
         ' ORDER BY created DESC',
         (g.user['id'],)
     ).fetchall()
@@ -69,17 +69,16 @@ def create():
             db = get_db()
             db.execute(
                 'INSERT INTO paper (title, abstract, link, user_id, class_id)'
-                ' VALUES (?, ?, ?, ?, ?)',
+                ' VALUES (%s, %s, %s, %s, %s)',
                 (title, abstract, link, g.user['id'], class_id)
             )
-            db.commit()
             return redirect(url_for('paper.index'))
 
     db = get_db()
     classes = db.execute(
         'SELECT c.id, user_id, class_name'
         ' FROM class c'
-        ' WHERE user_id=?'
+        ' WHERE user_id=%s'
         ' ORDER BY c.id ASC',
         (g.user['id'],)
     ).fetchall()
@@ -90,7 +89,7 @@ def get_paper(id):
     paper = get_db().execute(
         'SELECT id, title, abstract, link, class_id, created, user_id'
         ' FROM paper p '
-        ' WHERE p.id = ? AND p.user_id = ?',
+        ' WHERE p.id = %s AND p.user_id = %s',
         (id, g.user['id'])
     ).fetchone()
 
@@ -119,18 +118,17 @@ def update(id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE paper SET title=?, abstract=?, link=?, class_id=?'
-                ' WHERE id=?',
+                'UPDATE paper SET title=%s, abstract=%s, link=%s, class_id=%s'
+                ' WHERE id=%s',
                 (title, abstract, link, class_id, id)
             )
-            db.commit()
             return redirect(url_for('paper.index'))
 
     db = get_db()
     classes = db.execute(
         'SELECT c.id, user_id, class_name'
         ' FROM class c'
-        ' WHERE user_id=?'
+        ' WHERE user_id=%s'
         ' ORDER BY c.id ASC',
         (g.user['id'],)
     ).fetchall()
@@ -142,6 +140,5 @@ def update(id):
 def delete(id):
     get_paper(id)
     db = get_db()
-    db.execute('DELETE FROM paper WHERE id = ?', (id,))
-    db.commit()
+    db.execute('DELETE FROM paper WHERE id = %s', (id,))
     return redirect(url_for('paper.index'))
