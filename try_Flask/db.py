@@ -4,6 +4,7 @@ import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
+from werkzeug.security import check_password_hash, generate_password_hash
 
 def get_db():
     if 'db' not in g:
@@ -35,7 +36,7 @@ def collect_data_command():
     db.execute(
         'INSERT INTO user (username, password)'
         ' VALUES (?, ?)',
-        ('123', '123')
+        ('123', generate_password_hash('123'))
     )
     db.commit()
 
